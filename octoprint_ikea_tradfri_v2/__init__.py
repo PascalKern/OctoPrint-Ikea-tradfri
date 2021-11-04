@@ -227,7 +227,7 @@ class IkeaTradfriPlugin(
         if gateway_ip != "" and security_code != "":
             self._logger.debug('load devices')
 #            devices = self.run_gateway_get_request('15001')
-            devices = self._get_tradfri_client.get_devices()
+            devices = self._get_tradfri_client().get_devices()
             if devices is None:
                 return
             self.devices = []
@@ -256,7 +256,7 @@ class IkeaTradfriPlugin(
         self.loadDevices()
 
     def on_after_startup(self):
-        self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client.get_sockets())
+        self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
         
         helpers = self._plugin_manager.get_helpers("mqtt", "mqtt_publish", "mqtt_subscribe", "mqtt_unsubscribe")
         if helpers:
