@@ -24,7 +24,7 @@ from flask_babel import gettext
 from octoprint.access import ADMIN_GROUP
 
 from . import cli
-from tradfri_client import TradfriClient
+from .tradfri_client import TradfriClient
 
 userId = str(uuid.uuid1())[:8]
 
