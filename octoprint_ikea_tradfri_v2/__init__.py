@@ -257,8 +257,6 @@ class IkeaTradfriPlugin(
         self.loadDevices()
 
     def on_after_startup(self):
-        self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
-        
         helpers = self._plugin_manager.get_helpers("mqtt", "mqtt_publish", "mqtt_subscribe", "mqtt_unsubscribe")
         if helpers:
             if 'mqtt_publish' in helpers:
@@ -276,7 +274,11 @@ class IkeaTradfriPlugin(
         if self.baseTopic:
             self._logger.info('Enable MQTT')
             self.mqtt_subscribe('%s%s' % (self.baseTopic, 'plugin/ikea_tradfri/#'), self.on_mqtt_sub)
-
+        
+        test = self._get_tradfri_client()
+        self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
+        self._logger.info("Tradfri sockets found: %s" % await test.get_sockets())
+        
         self.loadDevices(startup=True)
         self.getStateData()
 
