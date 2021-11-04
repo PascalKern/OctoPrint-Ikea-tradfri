@@ -54,7 +54,7 @@ class IkeaTradfriPlugin(
         self.mqtt_subscribe = lambda *args, **kwargs: None
         self.mqtt_unsubscribe = lambda *args, **kwargs: None
 
-    async def _get_tradfri_client(self):
+    def _get_tradfri_client(self):
         if (self.tradfri_client == None):
             gateway_ip = self._settings.get(["gateway_ip"])
             security_code = self._settings.get(["security_code"])
@@ -256,7 +256,7 @@ class IkeaTradfriPlugin(
         self.loadDevices()
 
     def on_after_startup(self):
-        self._logger.info("Tradfri sockets found: %s" % await self._get_tradfri_client().get_sockets())
+        self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
         
         helpers = self._plugin_manager.get_helpers("mqtt", "mqtt_publish", "mqtt_subscribe", "mqtt_unsubscribe")
         if helpers:
