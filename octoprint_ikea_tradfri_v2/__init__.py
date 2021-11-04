@@ -53,10 +53,14 @@ class IkeaTradfriPlugin(
         self.mqtt_publish = lambda *args, **kwargs: None
         self.mqtt_subscribe = lambda *args, **kwargs: None
         self.mqtt_unsubscribe = lambda *args, **kwargs: None
-        gateway_ip = self._settings.get(["gateway_ip"])
-        security_code = self._settings.get(["security_code"])
-        self._logger.info("Init tradfri plugin with settings ip: %s" % gateway_ip)
-        self.tradfri_client = TradfriClient(gateway_ip, security_code)
+
+    async def _get_tradfri_client(self):
+        if (self.tradfri_client == None):
+            gateway_ip = self._settings.get(["gateway_ip"])
+            security_code = self._settings.get(["security_code"])
+            self._logger.info("Init tradfri plugin with settings ip: %s" % gateway_ip)
+            self.tradfri_client = TradfriClient(gateway_ip, security_code)
+        return self.tradfri_client
 
     async def _auth(self, gateway_ip, security_code):
         context = await aiocoap.Context.create_client_context()
@@ -223,7 +227,7 @@ class IkeaTradfriPlugin(
         if gateway_ip != "" and security_code != "":
             self._logger.debug('load devices')
 #            devices = self.run_gateway_get_request('15001')
-            devices = self.tradfri_client.get_devices()
+            devices = self._get_tradfri_client.get_devices()
             if devices is None:
                 return
             self.devices = []
@@ -252,7 +256,7 @@ class IkeaTradfriPlugin(
         self.loadDevices()
 
     def on_after_startup(self):
-        self._logger.info("Tradfri sockets found: %s" % self.tradfri_client.get_sockets())
+        self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client.get_sockets())
         
         helpers = self._plugin_manager.get_helpers("mqtt", "mqtt_publish", "mqtt_subscribe", "mqtt_unsubscribe")
         if helpers:
