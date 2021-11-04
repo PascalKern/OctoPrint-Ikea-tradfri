@@ -20,9 +20,11 @@ class Args:
 
 class TradfriClient():
     api_factory = None
+    args = None
+    
     
     def __init__(self, gw_ip, gw_sec_key):
-        args = Args(
+        self.args = Args(
             gw_ip,      #'192.168.0.124',
             gw_sec_key  #'Nh1aEgM5okubRdRI'
         )

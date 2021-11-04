@@ -53,6 +53,7 @@ class IkeaTradfriPlugin(
         self.mqtt_publish = lambda *args, **kwargs: None
         self.mqtt_subscribe = lambda *args, **kwargs: None
         self.mqtt_unsubscribe = lambda *args, **kwargs: None
+        self.tradfri_client = None
 
     def _get_tradfri_client(self):
         if (self.tradfri_client == None):
