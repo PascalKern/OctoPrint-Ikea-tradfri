@@ -24,6 +24,7 @@ from flask_babel import gettext
 from octoprint.access import ADMIN_GROUP
 
 from . import cli
+from tradfri_client import TradfriClient
 
 userId = str(uuid.uuid1())[:8]
 
@@ -52,6 +53,10 @@ class IkeaTradfriPlugin(
         self.mqtt_publish = lambda *args, **kwargs: None
         self.mqtt_subscribe = lambda *args, **kwargs: None
         self.mqtt_unsubscribe = lambda *args, **kwargs: None
+        gateway_ip = self._settings.get(["gateway_ip"])
+        security_code = self._settings.get(["security_code"])
+        self._logger.info("Init tradfri plugin with settings ip: %s" % gateway_ip)
+        self.tradfri_client = TradfriClient(gateway_ip, security_code)
 
     async def _auth(self, gateway_ip, security_code):
         context = await aiocoap.Context.create_client_context()
@@ -213,9 +218,12 @@ class IkeaTradfriPlugin(
     def loadDevices(self, startup=False):
         gateway_ip = self._settings.get(["gateway_ip"])
         security_code = self._settings.get(["security_code"])
+        
+        
         if gateway_ip != "" and security_code != "":
             self._logger.debug('load devices')
-            devices = self.run_gateway_get_request('15001')
+#            devices = self.run_gateway_get_request('15001')
+            devices = self.tradfri_client.get_devices()
             if devices is None:
                 return
             self.devices = []
@@ -244,7 +252,8 @@ class IkeaTradfriPlugin(
         self.loadDevices()
 
     def on_after_startup(self):
-
+        self._logger.info("Tradfri sockets found: %s" % self.tradfri_client.get_sockets())
+        
         helpers = self._plugin_manager.get_helpers("mqtt", "mqtt_publish", "mqtt_subscribe", "mqtt_unsubscribe")
         if helpers:
             if 'mqtt_publish' in helpers:
