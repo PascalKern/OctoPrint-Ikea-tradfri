@@ -14,7 +14,7 @@ plugin_package = "octoprint_ikea_tradfri"
 plugin_name = "OctoPrint Ikea Tradfri"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "1.7.3"
+plugin_version = "1.7.4"
 
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
@@ -22,19 +22,19 @@ plugin_version = "1.7.3"
 plugin_description = """Control Ikea Tradfri outlet from Octoprint"""
 
 # The plugin's author. Can be overwritten within OctoPrint's internal data via __plugin_author__ in the plugin module
-plugin_author = "Mathieu \"ralmn\" HIREL"
+plugin_author = "Pasca Kern"
 
 # The plugin's author's mail address.
 plugin_author_email = "me@rlm.pw"
 
 # The plugin's homepage URL. Can be overwritten within OctoPrint's internal data via __plugin_url__ in the plugin module
-plugin_url = "https://github.com/ralmn/OctoPrint-Ikea-tradfri"
+plugin_url = "https://github.com/PascalKern/OctoPrint-Ikea-tradfri"
 
 # The plugin's license. Can be overwritten within OctoPrint's internal data via __plugin_license__ in the plugin module
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["sarge", "aiocoap[all] @ https://github.com/chrysn/aiocoap/archive/master.zip"]
+plugin_requires = ["sarge", "aiocoap[all] @ https://github.com/chrysn/aiocoap/archive/master.zip", "pytradfri[async]"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point
