@@ -19,7 +19,7 @@ class Args:
     key: str
 
 class TradfriClient():
-    def api_factory = None
+    api_factory = None
     
     def __init__(self, gw_ip, gw_sec_key):
         args = Args(
