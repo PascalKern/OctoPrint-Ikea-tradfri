@@ -13,7 +13,7 @@ Turn on your printer with Ikea Tradfri Outlet.
 
 Install manually using this URL:
 
-    https://github.com/ralmn/OctoPrint-Ikea-tradfri/archive/master.zip
+    https://github.com/PascalKern/OctoPrint-Ikea-tradfri/archive/master.zip
 
 
 ## Configuration
