@@ -43,6 +43,7 @@ class TradfriClient():
             gw_ip,  # '192.168.0.124',
             gw_sec_key  # 'Nh1aEgM5okubRdRI'
         )
+        print("Init with args: %s" % self.args)
         self.loop = asyncio.get_event_loop()
 
     async def get_devices(self):
@@ -61,9 +62,9 @@ class TradfriClient():
     async def _get_api(self):
         try:
             api_factory = await self._get_api_factory()
-        #    psk = await api_factory.generate_psk(self.args.key)
+            psk = await api_factory.generate_psk(self.args.key)
             # self._logger.debug("Generated PSK: '%s' for IP: %s." % (psk, self.args.host))
-        #    print("Generated PSK: '%s' for IP: %s." % (psk, self.args.host))
+            print("Generated PSK: '%s' for IP: %s." % (psk, self.args.host))
             # conf[self.args.host] = {"identity": identity, "key": psk}
         except AttributeError:
             raise PytradfriError("Please provide the 'Security Code' on the back of your Tradfri gateway!")
