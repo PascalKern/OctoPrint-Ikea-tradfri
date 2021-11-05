@@ -223,8 +223,8 @@ class IkeaTradfriPlugin(
     def loadDevices(self, startup=False):
         gateway_ip = self._settings.get(["gateway_ip"])
         security_code = self._settings.get(["security_code"])
-        
-        
+
+
         if gateway_ip != "" and security_code != "":
             self._logger.debug('load devices')
 #            devices = self.run_gateway_get_request('15001')
@@ -274,11 +274,11 @@ class IkeaTradfriPlugin(
         if self.baseTopic:
             self._logger.info('Enable MQTT')
             self.mqtt_subscribe('%s%s' % (self.baseTopic, 'plugin/ikea_tradfri/#'), self.on_mqtt_sub)
-        
+
         test = self._get_tradfri_client()
         self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
-        self._logger.info("Tradfri sockets found: %s" % await test.get_sockets())
-        
+#        self._logger.info("Tradfri sockets found: %s" % await test.get_sockets())
+
         self.loadDevices(startup=True)
         self.getStateData()
 
