@@ -56,7 +56,7 @@ class IkeaTradfriPlugin(
         self.tradfri_client = None
 
     def _get_tradfri_client(self):
-        if (self.tradfri_client == None):
+        if self.tradfri_client is None:
             gateway_ip = self._settings.get(["gateway_ip"])
             security_code = self._settings.get(["security_code"])
             self._logger.info("Init tradfri plugin with settings ip: %s" % gateway_ip)
@@ -221,30 +221,26 @@ class IkeaTradfriPlugin(
         return None
 
     def loadDevices(self, startup=False):
-        gateway_ip = self._settings.get(["gateway_ip"])
-        security_code = self._settings.get(["security_code"])
-
-
-        if gateway_ip != "" and security_code != "":
-            self._logger.debug('load devices')
+        self._logger.debug('load devices')
 #            devices = self.run_gateway_get_request('15001')
-            devices = self._get_tradfri_client()._get_devices()
-            if devices is None:
-                return
-            self.devices = []
-            for i in range(len(devices)):
-                dev = self.run_gateway_get_request(
-                    '15001/{}'.format(devices[i]))
-                if '3312' in dev:
-                    self.devices.append(dict(id=devices[i], name=dev['9001'], type="Outlet"))
-                elif '3311' in dev:  # Lights
-                    self.devices.append(dict(id=devices[i], name=dev['9001'], type="Light"))
-            if len(self.devices):
-                self.status = 'ok'
-            else:
-                self.status = 'no_devices'
+        sockets = self._get_tradfri_client().get_sockets()
+        if sockets is None:
+            return
+        self.devices = []
+        for sock in sockets:
+            self.devices.apppend(dict(id=socket['9003'], name=socket['9001'], type="Outlet"))
+
+        for i in range(len(devices)):
+            dev = self.run_gateway_get_request(
+                '15001/{}'.format(devices[i]))
+            if '3312' in dev:
+                self.devices.append(dict(id=devices[i], name=dev['9001'], type="Outlet"))
+            elif '3311' in dev:  # Lights
+                self.devices.append(dict(id=devices[i], name=dev['9001'], type="Light"))
+        if len(self.devices):
+            self.status = 'ok'
         else:
-            self._logger.warn("No security code or gateway ip")
+            self.status = 'no_devices'
         self.save_settings()
 
     def on_settings_save(self, data):

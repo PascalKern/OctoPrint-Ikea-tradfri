@@ -31,10 +31,10 @@ class TradfriClient():
         except DeprecationWarning:
             pass
 
-    def get_sockets(self):
+    def get_sockets(self) -> []:
         return self._loop.run_until_complete(self.__get_sockets__())
 
-    def list_devices(self):
+    def list_devices(self) -> []:
         return self._loop.run_until_complete(self._get_devices())
 
     async def _get_devices(self):
