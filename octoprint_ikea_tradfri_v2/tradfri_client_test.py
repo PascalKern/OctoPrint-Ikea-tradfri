@@ -8,7 +8,8 @@ class MyTestCase(unittest.TestCase):
         client = TradfriClient("192.168.0.124", "Nh1aEgM5okubRdRI")
         sockets = client.get_sockets()
         print("Sockets %s" % sockets)
-        # client.shutdown()
+        sockets = client.get_sockets()
+        print("Sockets 2 %s" % sockets)
         self.assertEqual(True, True)  # add assertion here
 
 
