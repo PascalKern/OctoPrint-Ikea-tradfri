@@ -228,7 +228,7 @@ class IkeaTradfriPlugin(
         if gateway_ip != "" and security_code != "":
             self._logger.debug('load devices')
 #            devices = self.run_gateway_get_request('15001')
-            devices = self._get_tradfri_client().get_devices()
+            devices = self._get_tradfri_client()._get_devices()
             if devices is None:
                 return
             self.devices = []
