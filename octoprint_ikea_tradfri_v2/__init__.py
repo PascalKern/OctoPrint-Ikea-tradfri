@@ -225,21 +225,16 @@ class IkeaTradfriPlugin(
     def loadDevices(self, startup=False):
         self._logger.debug('load devices')
         #            devices = self.run_gateway_get_request('15001')
-        sockets = self._get_tradfri_client().get_sockets()
-        if sockets is None:
+        devices = self._get_tradfri_client().get_devices()
+        if devices is None:
             return
 
         self.devices = []
-        for socket in sockets:
-            self.devices.append(dict(id=socket.raw.get(ATTR_ID), name=socket.name, type="Outlet"))
-
-        for i in range(len(devices)):
-            dev = self.run_gateway_get_request(
-                '15001/{}'.format(devices[i]))
-            if '3312' in dev:
-                self.devices.append(dict(id=devices[i], name=dev['9001'], type="Outlet"))
-            elif '3311' in dev:  # Lights
-                self.devices.append(dict(id=devices[i], name=dev['9001'], type="Light"))
+        for device in devices:
+            if device.has_socket_control:
+                self.devices.append(dict(id=device.raw.get(ATTR_ID), name=device.name, type="Outlet"))
+            elif device.has_light_control:
+                self.devices.append(dict(id=device.raw.get(ATTR_ID), name=device.name, type="Light"))
 
         if len(self.devices):
             self.status = 'ok'
