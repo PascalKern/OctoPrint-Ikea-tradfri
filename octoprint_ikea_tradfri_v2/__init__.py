@@ -9,6 +9,8 @@ import threading
 import time
 import uuid
 
+from pytradfri.const import ATTR_ID
+
 import aiocoap
 import flask
 # (Don't forget to remove me)
@@ -48,8 +50,8 @@ class IkeaTradfriPlugin(
     pool = concurrent.futures.ThreadPoolExecutor()
     baseTopic = None
 
-
     def __init__(self):
+        super().__init__()
         self.mqtt_publish = lambda *args, **kwargs: None
         self.mqtt_subscribe = lambda *args, **kwargs: None
         self.mqtt_unsubscribe = lambda *args, **kwargs: None
@@ -222,13 +224,14 @@ class IkeaTradfriPlugin(
 
     def loadDevices(self, startup=False):
         self._logger.debug('load devices')
-#            devices = self.run_gateway_get_request('15001')
+        #            devices = self.run_gateway_get_request('15001')
         sockets = self._get_tradfri_client().get_sockets()
         if sockets is None:
             return
+
         self.devices = []
-        for sock in sockets:
-            self.devices.apppend(dict(id=socket['9003'], name=socket['9001'], type="Outlet"))
+        for socket in sockets:
+            self.devices.append(dict(id=socket.raw.get(ATTR_ID), name=socket.name, type="Outlet"))
 
         for i in range(len(devices)):
             dev = self.run_gateway_get_request(
@@ -237,6 +240,7 @@ class IkeaTradfriPlugin(
                 self.devices.append(dict(id=devices[i], name=dev['9001'], type="Outlet"))
             elif '3311' in dev:  # Lights
                 self.devices.append(dict(id=devices[i], name=dev['9001'], type="Light"))
+
         if len(self.devices):
             self.status = 'ok'
         else:
@@ -273,7 +277,7 @@ class IkeaTradfriPlugin(
 
         test = self._get_tradfri_client()
         self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
-#        self._logger.info("Tradfri sockets found: %s" % await test.get_sockets())
+        #        self._logger.info("Tradfri sockets found: %s" % await test.get_sockets())
 
         self.loadDevices(startup=True)
         self.getStateData()
@@ -309,7 +313,6 @@ class IkeaTradfriPlugin(
             return
 
         self.mqtt_publish('%s%s%s' % (self.baseTopic, 'plugin/ikea_tradfri/', topic), payload)
-
 
     # ~~ SettingsPlugin mixin
 
@@ -455,10 +458,8 @@ class IkeaTradfriPlugin(
         self.stopCooldown[dev['id']].start()
         self._send_message("sidebar", self.sidebarInfoData())
 
-
     def planStopTimeMode(self, dev, delay):
         now = math.ceil(time.time())
-
 
         if self.shutdownAt[dev['id']] is not None:
             self.shutdownAt[dev['id']] += delay
@@ -474,8 +475,6 @@ class IkeaTradfriPlugin(
         self.stopTimer[dev['id']].start()
 
         self._send_message("sidebar", self.sidebarInfoData())
-
-
 
     def connect_palette2(self):
         try:
@@ -521,7 +520,6 @@ class IkeaTradfriPlugin(
         if device['id'] in self.stopCooldown and self.stopCooldown[device['id']] is not None:
             self.stopCooldown[device['id']].cancel()
             self.stopCooldown[device['id']] = None
-
 
         self._send_message("sidebar", self.sidebarInfoData())
         if self._printer.is_printing():
@@ -812,7 +810,6 @@ class IkeaTradfriPlugin(
             res[device['id']] = self.getStateDataById(device['id'])
             self.mqtt_publish_ikea('state/%s' % (device['id']), res[device['id']])
 
-
         return res
 
     def getStateDataById(self, device_id):
@@ -824,7 +821,8 @@ class IkeaTradfriPlugin(
         if device is None:
             return dict(state=False)
 
-        if device is not None and 'type' in device and device['type'] is not None and device['type'] != "Outlet":  # Light
+        if device is not None and 'type' in device and device['type'] is not None and device[
+            'type'] != "Outlet":  # Light
             code = "3311"
 
         data = self.run_gateway_get_request('/15001/{}'.format(device_id))

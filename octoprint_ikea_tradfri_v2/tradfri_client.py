@@ -4,6 +4,7 @@ import uuid
 from dataclasses import dataclass
 
 from pytradfri import Gateway
+from pytradfri.device import Device
 from pytradfri.api.aiocoap_api import APIFactory
 from pytradfri.error import PytradfriError
 
@@ -16,12 +17,12 @@ class Args:
     identity: str = None
 
 
-class TradfriClient():
+class TradfriClient:
     _api_factory = None
     _loop = None
     args = None
 
-    def __init__(self, gw_ip, gw_sec_key):
+    def __init__(self, gw_ip, gw_sec_key) -> None:
         self.args = Args(
             gw_ip,  # '192.168.0.124',
             gw_sec_key  # 'Nh1aEgM5okubRdRI'
@@ -31,11 +32,14 @@ class TradfriClient():
         except DeprecationWarning:
             pass
 
-    def get_sockets(self) -> []:
+    def get_sockets(self) -> list[Device]:
         return self._loop.run_until_complete(self.__get_sockets__())
 
-    def list_devices(self) -> []:
+    def list_devices(self) -> list[Device]:
         return self._loop.run_until_complete(self._get_devices())
+
+    def get_settings(self) -> Args:
+        return self.args
 
     async def _get_devices(self):
         devices_command = Gateway().get_devices()
@@ -51,7 +55,7 @@ class TradfriClient():
             api_factory = await self._get_api_factory()
             return await api_factory.request(command)
         except AttributeError as err:
-            raise PytradfriError("Please provide the 'Security Code' on the back of your Tradfri gateway!", err)
+            raise PytradfriError("Failed to call tha API of your Tradfri gateway!", err)
 
     async def _get_api_factory(self):
         if self._api_factory is None:
