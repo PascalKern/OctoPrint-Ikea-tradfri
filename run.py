@@ -4,7 +4,7 @@ import json
 from pytradfri.const import ATTR_ID
 from octoprint_ikea_tradfri_v2 import TradfriClient
 
-client = TradfriClient("192.168.0.124", "Nh1aEgM5okubRdRI")
+client = TradfriClient(gw_ip="192.168.0.124", gw_sec_key="Nh1aEgM5okubRdRI")
 print("Sockets are:")
 for socket in client.get_sockets():
     print(socket)

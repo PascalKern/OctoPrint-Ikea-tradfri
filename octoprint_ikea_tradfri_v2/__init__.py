@@ -13,15 +13,9 @@ from pytradfri.const import ATTR_ID
 
 import aiocoap
 import flask
-# (Don't forget to remove me)
-# This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
-# as well as the plugin mixins it's subclassing from. This is really just a basic skeleton to get you started,
-# defining your plugin as a template plugin, settings and asset plugin. Feel free to add or remove mixins
-# as necessary.
-#
-# Take a look at the documentation on what other plugin mixins are available.
+
 import octoprint.plugin
-# from sarge import capture_both
+
 from flask_babel import gettext
 from octoprint.access import ADMIN_GROUP
 
@@ -63,6 +57,7 @@ class IkeaTradfriPlugin(
             security_code = self._settings.get(["security_code"])
             self._logger.info("Init tradfri plugin with settings ip: %s" % gateway_ip)
             self.tradfri_client = TradfriClient(gateway_ip, security_code)
+            self.tradfri_client.get_sockets()
         return self.tradfri_client
 
     async def _auth(self, gateway_ip, security_code):
@@ -71,7 +66,7 @@ class IkeaTradfriPlugin(
         context.client_credentials.load_from_dict({
             ('coaps://{}:5684/*'.format(gateway_ip)): {
                 'dtls': {
-                    'psk': security_code.encode(),
+                    'psk': security_code.encode(),      # TODO WTF psk != secure_code!!!
                     'client-identity': b"Client_identity"
                 }
             }
@@ -714,6 +709,13 @@ class IkeaTradfriPlugin(
             return flask.make_response("Expected security code and gateway.", 400)
         securityCode = flask.request.json['securityCode']
         gateway = flask.request.json['gateway']
+
+
+        # TODO Create UUID (identity) and generate PSK with it and SecureCode
+        # TODO Only store the PSK and identity in the settings afterwards and only use those
+        #   all over instead of secure code.
+
+
 
         if self.psk is not None:
             global userId
