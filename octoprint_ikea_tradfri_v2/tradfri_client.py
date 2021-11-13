@@ -9,7 +9,7 @@ from typing import Coroutine, Any, Optional
 from pytradfri import Gateway
 from pytradfri.device import Device
 from pytradfri.api.aiocoap_api import APIFactory
-from pytradfri.error import PytradfriError
+from pytradfri.error import PytradfriError, ServerError
 
 
 class TradfriClientError(PytradfriError):
@@ -21,6 +21,45 @@ def g_generate_psk(gateway: str, identity: str, security_code: str) -> str:
     return asyncio.get_event_loop().run_until_complete(
         TradfriClient._generate_psk(gateway=gateway, identity=identity, security_code=security_code)
     )
+
+
+# Try to patch the APIFactory for issue with try to regenerate a psk with existing identity
+# old__get_response = APIFactory._get_response
+# async def new__get_response(self, msg):
+#     # Here should modify to pr_resp = await pr_req.response_raising instead of response!
+#     print("------- It Worked!")
+#     return await old__get_response(self, msg)
+# APIFactory._get_response = new__get_response
+
+# # Second try - might work...
+# import ast
+# import inspect
+# # from pytradfri.api.aiocoap_api import APIFactory as OldAPIFactory
+# # source = inspect.getsource(APIFactory)
+# source = inspect.getsource(APIFactory._get_response)
+# # source = inspect.getsource(APIFactory._get_response)
+# # print("Source: ", source)
+# src = source.split('\n')
+# # print("Src: ", src)
+# indent = len(src[0]) - len(src[0].lstrip())
+# # print("Indent: ", indent)
+# s = '\n'.join(i[indent:] for i in src)
+# # print("S: ", s)
+# tree = ast.parse(s)
+# # tree = ast.parse(source=source)
+# # print("Tree: ", tree)
+# n_s = ast.parse("pr_resp = await pr_req.response_raising")
+# # tree.body[0].body[8].body[1].body[2] = n_s.body[0]  # In whole class
+# tree.body[0].body[1].body[2] = n_s.body[0]  # Only _get_response
+# exec(compile(tree, 'aiocoap_api_edit.py', 'exec'))
+# # exec(compile(tree, '<string>', 'exec'))
+# APIFactory._get_response = _get_response  # The right hand part is the function generated in global namespace by exec(compile(
+# del _get_response
+# # APIFactory = APIFactory
+# # APIFactory = OldAPIFactory
+# # del OldAPIFactory
+#
+# # from pytradfri.api.aiocoap_api import APIFactory
 
 
 class TradfriClient:
@@ -47,7 +86,10 @@ class TradfriClient:
     @staticmethod
     async def _generate_psk(gateway: str, identity: str, security_code: str) -> str:
         _api_factory = await APIFactory.init(host=gateway, psk_id=identity)
-        psk = await _api_factory.generate_psk(security_key=security_code)
+        try:
+            psk = await _api_factory.generate_psk(security_key=security_code)
+        except ServerError as e:
+            raise e
         await asyncio.sleep(0.1)
         await _api_factory.shutdown()
         return psk
