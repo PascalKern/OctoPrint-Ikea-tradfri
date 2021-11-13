@@ -16,13 +16,11 @@ class TradfriClientError(PytradfriError):
     pass
 
 
-async def g_generate_psk(gateway: str, identity: str, security_code: str) -> str:
-    print("Creating PSK from gateway: '%s', identity: '%s' and key: '%s'" % (gateway, identity, security_code))
-    _api_factory = await APIFactory.init(host=gateway, psk_id=identity)
-    psk = await _api_factory.generate_psk(security_key=security_code)
-    await asyncio.sleep(0.1)
-    await _api_factory.shutdown()
-    return psk
+# Deprecated or use it only here (without class!)
+def g_generate_psk(gateway: str, identity: str, security_code: str) -> str:
+    return asyncio.get_event_loop().run_until_complete(
+        TradfriClient._generate_psk(gateway=gateway, identity=identity, security_code=security_code)
+    )
 
 
 class TradfriClient:
@@ -42,16 +40,9 @@ class TradfriClient:
 
     @staticmethod
     def generate_psk(gateway: str, identity: str, security_code: str) -> str:
-        # return asyncio.ensure_future(
-        #     TradfriClient._generate_psk(gateway=gateway, identity=identity, security_code=security_code)
-        # ).result()
-        # res = asyncio.get_event_loop().run_until_complete(
         return asyncio.get_event_loop().run_until_complete(
             TradfriClient._generate_psk(gateway=gateway, identity=identity, security_code=security_code)
         )
-        # asyncio.get_event_loop().close()
-        # return res
-        # return asyncio.run(TradfriClient._generate_psk(gateway=gateway, identity=identity, security_code=security_code))
 
     @staticmethod
     async def _generate_psk(gateway: str, identity: str, security_code: str) -> str:
@@ -63,14 +54,13 @@ class TradfriClient:
 
     def get_sockets(self) -> list[Device]:
         return asyncio.run(self._get_sockets())
-        # return asyncio.ensure_future(self._get_sockets(), loop=self._loop).result()
 
     async def _get_sockets(self) -> list[Device]:
         devices = await self._get_devices()
         return [dev for dev in devices if dev.has_socket_control]
 
     def list_devices(self) -> list[Device]:
-        return asyncio.ensure_future(self._get_devices(), loop=self._loop).result()
+        return self._loop.run_until_complete(self._get_devices())
 
     async def _get_devices(self):
         devices_command = Gateway().get_devices()
@@ -95,10 +85,10 @@ class TradfriClient:
         await self._api_factory.shutdown()
         self._api_factory = Optional[APIFactory]
 
-    # def __del__(self):
-    #     try:
-    #         if self._loop and self._api_factory:
-    #             self._loop.run_until_complete(self._api_factory.shutdown())
-    #         print("Closed the pytradfri factory in destructor!")
-    #     except PytradfriError as err:
-    #         print("Failed to close pytradfri factory!", err)
+    def __del__(self):
+        try:
+            if self._loop and self._api_factory:
+                self._loop.run_until_complete(self._api_factory.shutdown())
+            print("Closed the pytradfri factory in destructor!")
+        except PytradfriError as err:
+            print("Failed to close pytradfri factory!", err)
