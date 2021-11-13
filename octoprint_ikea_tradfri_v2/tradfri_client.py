@@ -90,8 +90,9 @@ class TradfriClient:
             psk = await _api_factory.generate_psk(security_key=security_code)
         except ServerError as e:
             raise e
-        await asyncio.sleep(0.1)
-        await _api_factory.shutdown()
+        finally:
+            await asyncio.sleep(0.1)
+            await _api_factory.shutdown()
         return psk
 
     def get_sockets(self) -> list[Device]:
