@@ -60,8 +60,8 @@ class IkeaTradfriPlugin(
             identity = self._settings.get(["identity"])
             psk = self._settings.get(["psk"])
 
-            self._logger.info("Init tradfri client for plugin with ip: %s and identity: %s" % gateway_ip, identity)
-            self._tradfri_client = TradfriClient(gw_ip=gateway_ip, identity=identity, psk=psk, logger=self._lo)
+            self._logger.info("Init tradfri client for plugin with ip: %s and identity: %s" % (gateway_ip, identity))
+            self._tradfri_client = TradfriClient(gw_ip=gateway_ip, identity=identity, psk=psk, logger=self._logger)
         return self._tradfri_client
 
     def save_settings(self):
@@ -71,115 +71,10 @@ class IkeaTradfriPlugin(
         self._settings.save()
         self._logger.debug('Settings saved')
 
-    def run_gateway_get_request(self, path):
-        res = self.pool.submit(asyncio.run, self._run_gateway_get_request(path)).result()
-        return res
-
-    async def _run_gateway_get_request(self, path):
-        gateway_ip = self._settings.get(["gateway_ip"])
-
-        if self.psk is None:
-            self.psk = await self.auth()
-        if self.psk is None:
-            self.status = 'connection_failled'
-            self._logger.error('Failed to get psk key (run_gateway_get_request)')
-            self.save_settings()
-            return None
-
-        uri = 'coaps://{}:5684/{}'.format(gateway_ip, path)
-
-        context = await aiocoap.Context.create_client_context()
-        # context.log.setLevel(level="DEBUG")
-        context.client_credentials.load_from_dict({
-            ('coaps://{}:5684/*'.format(gateway_ip)): {
-                'dtls': {
-                    'psk': self.psk.encode(),
-                    'client-identity': userId.encode()
-                }
-            }
-        })
-
-        # self._logger.debug(api)
-
-        req = aiocoap.Message(code=aiocoap.Code.GET, uri=uri)
-
-        try:
-            response = await context.request(req).response
-        except Exception as e:
-            self._logger.error('_run_gateway_get_request(): Failed to fetch resource:')
-            self._logger.error(e)
-        else:
-            self._logger.debug('Result: %s\n%r' % (response.code, response.payload))
-            try:
-                resPayload = json.loads(response.payload)
-            except ValueError as e:
-                self._logger.error("Failed to parse auth response")
-                self._logger.error(e)
-            else:
-                return resPayload
-
-        return None
-
-    def run_gateway_put_request(self, path, data):
-        res = self.pool.submit(asyncio.run, self._run_gateway_put_request(path, data)).result()
-        return res
-
-    async def _run_gateway_put_request(self, path, data):
-        gateway_ip = self._settings.get(["gateway_ip"])
-
-        if self.psk is None:
-            self.psk = await self.auth()
-        if self.psk is None:
-            self.status = 'connection_failled'
-            self._logger.error('Failed to get psk key (run_gateway_get_request)')
-            self.save_settings()
-            return None
-
-        uri = 'coaps://{}:5684/{}'.format(gateway_ip, path)
-
-        context = await aiocoap.Context.create_client_context()
-        # context.log.setLevel(level="DEBUG")
-        context.client_credentials.load_from_dict({
-            ('coaps://{}:5684/*'.format(gateway_ip)): {
-                'dtls': {
-                    'psk': self.psk.encode(),
-                    'client-identity': userId.encode()
-                }
-            }
-        })
-
-        # self._logger.debug(api)
-        if isinstance(data, str):
-            payload = data
-        else:
-            payload = json.dumps(data)
-
-        req = aiocoap.Message(code=aiocoap.Code.PUT, uri=uri, payload=payload.encode())
-
-        try:
-            response = await context.request(req).response
-        except Exception as e:
-            self._logger.error('_run_gateway_put_request(): Failed to fetch resource:')
-            self._logger.error(e)
-        else:
-            self._logger.debug('Result: %s\n%r' % (response.code, response.payload))
-            if response.payload:
-                try:
-                    resPayload = json.loads(response.payload)
-                except ValueError as e:
-                    self._logger.error("Failed to parse auth response")
-                    self._logger.error(e)
-                else:
-                    return resPayload
-            else:
-                return dict()
-
-        return None
-
     def load_devices(self, startup=False):
         self._logger.debug('load devices')
         #            devices = self.run_gateway_get_request('15001')
-        devices = self._get_tradfri_client().get_devices()
+        devices = self._get_tradfri_client().list_devices()
         if devices is None:
             return
 
@@ -196,6 +91,8 @@ class IkeaTradfriPlugin(
             self.status = 'no_devices'
         self.save_settings()
 
+    # --- SettingsPlugin ---
+
     def on_settings_save(self, data):
         # keyAsNumber = ['postponeDelay', 'stop_timer', 'connection_timer']
         # for key in data:
@@ -204,6 +101,8 @@ class IkeaTradfriPlugin(
 
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
         self.load_devices()
+
+    # --- StartupPlugin ---
 
     def on_after_startup(self):
         helpers = self._plugin_manager.get_helpers("mqtt", "mqtt_publish", "mqtt_subscribe", "mqtt_unsubscribe")
@@ -224,11 +123,11 @@ class IkeaTradfriPlugin(
             self._logger.info('Enable MQTT')
             self.mqtt_subscribe('%s%s' % (self.baseTopic, 'plugin/ikea_tradfri/#'), self.on_mqtt_sub)
 
-        test = self._get_tradfri_client()
-        self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
-        #        self._logger.info("Tradfri sockets found: %s" % await test.get_sockets())
+        try:
+            self.load_devices(startup=True)
+        except BaseException as e:
+            print("Failed to get devices on startup! Error: %s", e)
 
-        self.load_devices(startup=True)
         self.getStateData()
 
     def on_mqtt_sub(self, topic, message, retain=None, qos=None, *args, **kwargs):
@@ -331,7 +230,7 @@ class IkeaTradfriPlugin(
         # for details.
         return dict(
             ikea_tradfri=dict(
-                displayName="Ikea Tradfri Plugin",
+                displayName="Ikea Tradfri Plugin v2",
                 displayVersion=self._plugin_version,
 
                 # version check: github repository
@@ -705,7 +604,8 @@ class IkeaTradfriPlugin(
             'type'] != "Outlet":  # Light
             code = "3311"
 
-        data = self.run_gateway_get_request('/15001/{}'.format(device_id))
+        data = self._tradfri_client.get_by_id(device_id)
+
         state = False
         if code in data and len(data[code]) > 0 and "5850" in data[code][0]:
             state = data[code][0]["5850"] == 1
@@ -801,7 +701,7 @@ class IkeaTradfriPlugin(
 # If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
 # ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
 # can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
-__plugin_name__ = "OctoPrint Ikea Tradfri"
+__plugin_name__ = "OctoPrint Ikea Tradfri v2"
 __plugin_pythoncompat__ = ">=3,<4"
 
 

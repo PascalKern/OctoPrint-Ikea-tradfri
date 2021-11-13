@@ -34,7 +34,11 @@ plugin_url = "https://github.com/PascalKern/OctoPrint-Ikea-tradfri"
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["sarge", "aiocoap[all] @ https://github.com/chrysn/aiocoap/archive/master.zip", "pytradfri[async]"]
+plugin_requires = [
+    "sarge",
+    "aiocoap==0.4b3",
+    "pytradfri[async]==7.1.1"
+]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point

@@ -1,7 +1,7 @@
 /*
- * View model for OctoPrint-Ikea-tradfri
+ * View model for OctoPrint-Ikea-tradfri_2
  *
- * Author: Mathieu "ralmn" HIREL
+ * Author: Pascal Kern
  * License: AGPLv3
  */
 $(function () {
@@ -44,7 +44,7 @@ $(function () {
             let data = payload || {};
             data.command = command_name;
             $.ajax({
-                url: API_BASEURL + "plugin/ikea_tradfri",
+                url: API_BASEURL + "plugin/ikea_tradfri_v2",
                 type: "POST",
                 dataType: "json",
                 data: JSON.stringify(data),
@@ -91,7 +91,7 @@ $(function () {
 
         self.wizardTryConnect = function () {
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/wizard/tryConnect",
+                url: BASEURL + "plugin/ikea_tradfri_v2/wizard/tryConnect",
                 type: "POST",
                 //dataType: "json",
                 data: JSON.stringify({
@@ -133,7 +133,7 @@ $(function () {
 
         self.getSideBarInfo = function(){
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/sidebar/info",
+                url: BASEURL + "plugin/ikea_tradfri_v2/sidebar/info",
                 type: "GET",
                 dataType: "json"
             }).done(self.onSidebarInfo);
@@ -141,7 +141,7 @@ $(function () {
 
         self.getNavbarInfo = function(){
            $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/navbar/info",
+                url: BASEURL + "plugin/ikea_tradfri_v2/navbar/info",
                 type: "GET",
                 dataType: "json"
             }).done(self.navInfo);
@@ -167,7 +167,7 @@ $(function () {
 
         self.postponeShutdown = function () {
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/sidebar/postpone",
+                url: BASEURL + "plugin/ikea_tradfri_v2/sidebar/postpone",
                 type: "POST",
                 dataType: "json",
                 data: JSON.stringify({
@@ -182,7 +182,7 @@ $(function () {
 
         self.cancelShutdown = function () {
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/sidebar/cancelShutdown",
+                url: BASEURL + "plugin/ikea_tradfri_v2/sidebar/cancelShutdown",
                 type: "POST",
                 dataType: "json",
                 data: JSON.stringify({
@@ -197,7 +197,7 @@ $(function () {
 
         self.shutdownNow = function () {
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/sidebar/shutdownNow",
+                url: BASEURL + "plugin/ikea_tradfri_v2/sidebar/shutdownNow",
                 type: "POST",
                 dataType: "json",
                 data: JSON.stringify({
@@ -213,7 +213,7 @@ $(function () {
         self.onBeforeWizardFinish = function () {
             if ($("#wizardIkeaTradfriDevices").val()) {
                 $.ajax({
-                    url: BASEURL + "plugin/ikea_tradfri/wizard/setOutlet",
+                    url: BASEURL + "plugin/ikea_tradfri_v2/wizard/setOutlet",
                     type: "POST",
                     //dataType: "json",
                     data: JSON.stringify({
@@ -227,7 +227,7 @@ $(function () {
 
         self.getDevices = function () {
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/devices",
+                url: BASEURL + "plugin/ikea_tradfri_v2/devices",
                 type: "GET",
                 dataType: "json",
                 contentType: "application/json; charset=UTF-8"
@@ -323,7 +323,7 @@ $(function () {
             }
 
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/device/save",
+                url: BASEURL + "plugin/ikea_tradfri_v2/device/save",
                 type: "POST",
                 //dataType: "json",
                 data: JSON.stringify({
@@ -366,7 +366,7 @@ $(function () {
             let deviceId = device.id();
 
             $.ajax({
-                url: BASEURL + "plugin/ikea_tradfri/device/delete",
+                url: BASEURL + "plugin/ikea_tradfri_v2/device/delete",
                 type: "POST",
                 //dataType: "json",
                 data: JSON.stringify({
@@ -403,6 +403,6 @@ $(function () {
         // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
         dependencies: ["settingsViewModel", "loginStateViewModel", "wizardViewModel", "printerStateViewModel"],
         // Elements to bind to, e.g. #settings_plugin_ikea-tradfri, #tab_plugin_ikea-tradfri, ...
-        elements: [...Array.from($(".navbar_plugin_ikea_tradfri")).map(e => `#${e.id}`), "#settings_plugin_ikea_tradfri", "#wizard_plugin_ikea_tradfri", "#sidebar_plugin_ikea_tradfri"]
+        elements: [...Array.from($(".navbar_plugin_ikea_tradfri_2")).map(e => `#${e.id}`), "#settings_plugin_ikea_tradfri_v2", "#wizard_plugin_ikea_tradfri", "#sidebar_plugin_ikea_tradfri_v2"]
     });
 });

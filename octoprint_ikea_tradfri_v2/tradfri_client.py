@@ -110,6 +110,14 @@ class TradfriClient:
         devices_commands = await self._call_api(devices_command)
         return await self._call_api(devices_commands)
 
+    def get_by_id(self, id: str) -> Device:
+        return asyncio.run(self._get_by_id(id))
+
+    async def _get_by_id(self, id: str):
+        get_device = Gateway().get_device(id)
+        device_command = await self._call_api(get_device)
+        return await self._call_api(device_command)
+
     async def _call_api(self, command):
         try:
             api_factory = await self._get_api_factory()

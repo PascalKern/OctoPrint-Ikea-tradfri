@@ -2,7 +2,6 @@ import json
 
 import flask
 
-from pytradfri.api.aiocoap_api import APIFactory
 from pytradfri.error import PytradfriError
 
 import octoprint
@@ -22,7 +21,10 @@ class IkeaTradfriPluginWizard(
         gateway_ip = self._settings.get(["gateway_ip"])
         psk = self._settings.get(["psk"])
         identity = self._settings.get(["identity"])
-        return gateway_ip == "" or psk == "" or identity == ""
+        print("Check if wizard is required?")
+        is_required = gateway_ip == "" or psk == "" or identity == ""
+        print("IP: '%s', PSK: '%s' and Identity: '%s' -> Required: '%s'" % (gateway_ip, psk, identity, is_required))
+        return is_required
 
     def get_wizard_version(self):
         return 1
