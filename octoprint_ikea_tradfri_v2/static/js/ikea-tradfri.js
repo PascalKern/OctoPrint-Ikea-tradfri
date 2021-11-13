@@ -101,7 +101,11 @@ $(function () {
                 contentType: "application/json; charset=UTF-8"
             }).done(function (data) {
                 //console.log('done', data);
+                if (!data || data === {}) {
+                    data = self.getDevices()
+                }
                 self.wizardDevices(JSON.parse(data));
+
                 //console.log(self.wizardDevices);
                 self.wizardError(null);
             }).fail(function (jqXHR, textStatus, errorThrown) {

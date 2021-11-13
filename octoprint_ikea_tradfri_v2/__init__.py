@@ -7,7 +7,6 @@ import json
 import math
 import threading
 import time
-import uuid
 
 from pytradfri.const import ATTR_ID
 
@@ -21,19 +20,22 @@ from octoprint.access import ADMIN_GROUP
 
 from . import cli
 from .tradfri_client import TradfriClient
+from .wizzard_impl import IkeaTradfriPluginWizard
 
-userId = str(uuid.uuid1())[:8]
+global __plugin_hooks__
+global __plugin_implementation__
 
 
 class IkeaTradfriPlugin(
     octoprint.plugin.EventHandlerPlugin,
     octoprint.plugin.SimpleApiPlugin,
     octoprint.plugin.StartupPlugin,
-    octoprint.plugin.SettingsPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.TemplatePlugin,
-    octoprint.plugin.WizardPlugin,
-    octoprint.plugin.BlueprintPlugin):
+    octoprint.plugin.BlueprintPlugin,
+    # octoprint.plugin.SettingsPlugin,
+    IkeaTradfriPluginWizard
+):
     psk = None
     devices = []
     status = 'waiting'
@@ -49,61 +51,18 @@ class IkeaTradfriPlugin(
         self.mqtt_publish = lambda *args, **kwargs: None
         self.mqtt_subscribe = lambda *args, **kwargs: None
         self.mqtt_unsubscribe = lambda *args, **kwargs: None
-        self.tradfri_client = None
+
+        self._tradfri_client = None
 
     def _get_tradfri_client(self):
-        if self.tradfri_client is None:
+        if self._tradfri_client is None:
             gateway_ip = self._settings.get(["gateway_ip"])
-            security_code = self._settings.get(["security_code"])
-            self._logger.info("Init tradfri plugin with settings ip: %s" % gateway_ip)
-            self.tradfri_client = TradfriClient(gateway_ip, security_code)
-            self.tradfri_client.get_sockets()
-        return self.tradfri_client
+            identity = self._settings.get(["identity"])
+            psk = self._settings.get(["psk"])
 
-    async def _auth(self, gateway_ip, security_code):
-        context = await aiocoap.Context.create_client_context()
-        # context.log.setLevel(level="DEBUG")
-        context.client_credentials.load_from_dict({
-            ('coaps://{}:5684/*'.format(gateway_ip)): {
-                'dtls': {
-                    'psk': security_code.encode(),      # TODO WTF psk != secure_code!!!
-                    'client-identity': b"Client_identity"
-                }
-            }
-        })
-
-        payload = dict()
-        payload["9090"] = userId
-        payload = json.dumps(payload)
-
-        uri = 'coaps://{}:5684/{}'.format(gateway_ip, "15011/9063")
-        req = aiocoap.Message(code=aiocoap.Code.POST, uri=uri, payload=payload.encode())
-
-        try:
-            response = await context.request(req).response
-        except Exception as e:
-            self._logger.error('auth(): Failed to fetch resource:')
-            self._logger.error(e)
-        else:
-            self._logger.debug('Result: %s\n%r' % (response.code, response.payload))
-            try:
-                resPayload = json.loads(response.payload)
-            except ValueError as e:
-                self._logger.error("Failed to parse auth response")
-                self._logger.error(e)
-            else:
-                return resPayload["9091"] if "9091" in resPayload else None
-
-        return None
-
-    async def auth(self):
-        gateway_ip = self._settings.get(["gateway_ip"])
-        security_code = self._settings.get(["security_code"])
-
-        # token = self.pool.submit(asyncio.run, self._auth(gateway_ip, security_code)).result()
-        # return token
-        token = await self._auth(gateway_ip, security_code)
-        return token
+            self._logger.info("Init tradfri client for plugin with ip: %s and identity: %s" % gateway_ip, identity)
+            self._tradfri_client = TradfriClient(gw_ip=gateway_ip, identity=identity, psk=psk, logger=self._lo)
+        return self._tradfri_client
 
     def save_settings(self):
         self._settings.set(['status'], self.status)
@@ -217,7 +176,7 @@ class IkeaTradfriPlugin(
 
         return None
 
-    def loadDevices(self, startup=False):
+    def load_devices(self, startup=False):
         self._logger.debug('load devices')
         #            devices = self.run_gateway_get_request('15001')
         devices = self._get_tradfri_client().get_devices()
@@ -244,7 +203,7 @@ class IkeaTradfriPlugin(
         #         data[key] = int(data[key])
 
         octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
-        self.loadDevices()
+        self.load_devices()
 
     def on_after_startup(self):
         helpers = self._plugin_manager.get_helpers("mqtt", "mqtt_publish", "mqtt_subscribe", "mqtt_unsubscribe")
@@ -269,7 +228,7 @@ class IkeaTradfriPlugin(
         self._logger.info("Tradfri sockets found: %s" % self._get_tradfri_client().get_sockets())
         #        self._logger.info("Tradfri sockets found: %s" % await test.get_sockets())
 
-        self.loadDevices(startup=True)
+        self.load_devices(startup=True)
         self.getStateData()
 
     def on_mqtt_sub(self, topic, message, retain=None, qos=None, *args, **kwargs):
@@ -309,7 +268,7 @@ class IkeaTradfriPlugin(
     def get_settings_defaults(self):
         return dict(
             # put your plugin's default settings here
-            security_code="",
+            identity="",
             gateway_ip="",
             psk="",
             selected_devices=[],
@@ -394,7 +353,7 @@ class IkeaTradfriPlugin(
                 ],
 
                 # update method: pip
-                pip="https://github.com/ralmn/OctoPrint-Ikea-tradfri/archive/{target_version}.zip"
+                pip="https://github.com/PascalKern/OctoPrint-Ikea-tradfri/archive/{target_version}.zip"
             )
         )
 
@@ -666,85 +625,9 @@ class IkeaTradfriPlugin(
         self._send_message("sidebar", self.sidebarInfoData())
         return self.sidebarInfo()
 
-    ### Wizard
-    def is_wizard_required(self):
-        gateway_ip = self._settings.get(["gateway_ip"])
-        security_code = self._settings.get(["security_code"])
-        selected_devices = self._settings.get(['selected_devices'])
-        return gateway_ip == "" or security_code == "" or len(selected_devices) > 0
-
-    def get_wizard_version(self):
-        return 1
-
-    @octoprint.plugin.BlueprintPlugin.route("/wizard/setOutlet", methods=["POST"])
-    def wizardSetOutlet(self):
-        if not "selected_outlet" in flask.request.json:
-            return flask.make_response("Expected selected_outlet.", 400)
-        selected_outlet = flask.request.json['selected_outlet']
-
-        dev = dict(
-            name="Printer",
-            id=selected_outlet,
-            type="Outlet",
-            connection_timer=5,
-            stop_timer=30,
-            postpone_delay=30,
-            turn_off_mode="cooldown",
-            cooldown_bed=-1,
-            cooldown_hotend=50,
-            on_done=True,
-            on_failed=False,
-            icon="plug",
-            nav_name=False,
-            nav_icon=True
-        )
-        self._settings.set(['selected_devices'], [dev])
-        self._settings.save()
-
-        return flask.make_response("OK", 200)
-
-    @octoprint.plugin.BlueprintPlugin.route("/wizard/tryConnect", methods=["POST"])
-    def wizardTryConnect(self):
-        if not "securityCode" in flask.request.json or not "gateway" in flask.request.json:
-            return flask.make_response("Expected security code and gateway.", 400)
-        securityCode = flask.request.json['securityCode']
-        gateway = flask.request.json['gateway']
-
-
-        # TODO Create UUID (identity) and generate PSK with it and SecureCode
-        # TODO Only store the PSK and identity in the settings afterwards and only use those
-        #   all over instead of secure code.
-
-
-
-        if self.psk is not None:
-            global userId
-            userId = str(uuid.uuid1())[:8]
-            self.psk = None
-
-        try:
-            psk = self.pool.submit(asyncio.run, self._auth(gateway_ip=gateway, security_code=securityCode)).result(
-                timeout=30)
-        except Exception as e:
-            self._logger.warn("wizzard : Error on try auth")
-        else:
-            self.psk = psk
-
-        if self.psk is not None:
-            self._settings.set(['security_code'], securityCode)
-            self._settings.set(['gateway_ip'], gateway)
-            self._settings.save()
-            self.loadDevices()
-
-            devices = self._settings.get(['devices'])
-            return flask.make_response(json.dumps(devices, indent=4), 200)
-        else:
-            self._logger.error('Failed to get psk key (wizardTryConnect)')
-            return flask.make_response("Failed to connect.", 500)
-
     @octoprint.plugin.BlueprintPlugin.route("/devices", methods=["GET"])
     def listDevices(self):
-        self.loadDevices()
+        self.load_devices()
         return flask.make_response(json.dumps(self.devices, indent=4), 200)
 
     @octoprint.plugin.BlueprintPlugin.route("/device/save", methods=["POST"])
