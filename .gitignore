@@ -9,3 +9,4 @@ dist
 *.zip
 .vscode
 
+/run_conf.json
