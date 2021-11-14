@@ -61,27 +61,27 @@ $(function () {
         };
 
         self.canDisplayNavbar = function () {
-            return self.settings.getLocalData().plugins.ikea_tradfri.selected_devices.length > 0;
+            return self.settings.getLocalData().plugins.ikea_tradfri_v2.selected_devices.length > 0;
         };
 
         self.statusOk = function () {
-            return self.settings.getLocalData().plugins.ikea_tradfri.status == "ok";
+            return self.settings.getLocalData().plugins.ikea_tradfri_v2.status == "ok";
         };
 
         self.statusNoDevices = function () {
-            return self.settings.getLocalData().plugins.ikea_tradfri.status == "no_devices";
+            return self.settings.getLocalData().plugins.ikea_tradfri_v2.status == "no_devices";
         };
 
         self.statusFailConnection = function () {
-            return self.settings.getLocalData().plugins.ikea_tradfri.status == "fail_connection";
+            return self.settings.getLocalData().plugins.ikea_tradfri_v2.status == "fail_connection";
         };
 
         self.statusWaiting = function () {
-            return self.settings.getLocalData().plugins.ikea_tradfri.status == "waiting";
+            return self.settings.getLocalData().plugins.ikea_tradfri_v2.status == "waiting";
         };
 
         self.statusOk = function () {
-            return self.settings.getLocalData().plugins.ikea_tradfri.status == "ok";
+            return self.settings.getLocalData().plugins.ikea_tradfri_v2.status == "ok";
         };
 
 
@@ -115,7 +115,7 @@ $(function () {
         };
 
         self.onDataUpdaterPluginMessage = function (plugin, msg) {
-            if (plugin == 'ikea_tradfri') {
+            if (plugin == 'ikea_tradfri_v2') {
                 if (msg.type == 'sidebar') {
                     self.onSidebarInfo(msg.payload);
                 } else if (msg.type == 'navbar') {
@@ -336,12 +336,12 @@ $(function () {
                     deviceObs[key] = ko.observable(device[key]);
                 }
                 if (currentDevice) {
-                    self.settings.settings.plugins.ikea_tradfri.selected_devices.replace(currentDevice, deviceObs);
+                    self.settings.settings.plugins.ikea_tradfri_v2.selected_devices.replace(currentDevice, deviceObs);
                     if (currentDevice.nav_icon() != deviceObs.nav_icon() || currentDevice.nav_name() != deviceObs.nav_name()) {
                         self.reloadRequired(true);
                     }
                 } else {
-                    self.settings.settings.plugins.ikea_tradfri.selected_devices.push(deviceObs);
+                    self.settings.settings.plugins.ikea_tradfri_v2.selected_devices.push(deviceObs);
                 }
 
             });
@@ -374,7 +374,7 @@ $(function () {
                 }),
                 contentType: "application/json; charset=UTF-8"
             }).then((data) => {
-                self.settings.settings.plugins.ikea_tradfri.selected_devices.remove(device)
+                self.settings.settings.plugins.ikea_tradfri_v2.selected_devices.remove(device)
             });
             return true;
         }
@@ -403,6 +403,6 @@ $(function () {
         // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
         dependencies: ["settingsViewModel", "loginStateViewModel", "wizardViewModel", "printerStateViewModel"],
         // Elements to bind to, e.g. #settings_plugin_ikea-tradfri, #tab_plugin_ikea-tradfri, ...
-        elements: [...Array.from($(".navbar_plugin_ikea_tradfri_2")).map(e => `#${e.id}`), "#settings_plugin_ikea_tradfri_v2", "#wizard_plugin_ikea_tradfri", "#sidebar_plugin_ikea_tradfri_v2"]
+        elements: [...Array.from($(".navbar_plugin_ikea_tradfri")).map(e => `#${e.id}`), "#settings_plugin_ikea_tradfri_v2", "#wizard_plugin_ikea_tradfri_v2", "#sidebar_plugin_ikea_tradfri_v2"]
     });
 });

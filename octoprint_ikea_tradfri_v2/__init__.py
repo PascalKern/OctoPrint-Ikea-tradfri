@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import asyncio
 import concurrent.futures
 import json
 import math
@@ -10,7 +9,6 @@ import time
 
 from pytradfri.const import ATTR_ID
 
-import aiocoap
 import flask
 
 import octoprint.plugin
@@ -19,8 +17,8 @@ from flask_babel import gettext
 from octoprint.access import ADMIN_GROUP
 
 from . import cli
+from .mixins.wizzard_impl import IkeaTradfriPluginWizard
 from .tradfri_client import TradfriClient
-from .wizzard_impl import IkeaTradfriPluginWizard
 
 global __plugin_hooks__
 global __plugin_implementation__
@@ -32,6 +30,7 @@ class IkeaTradfriPlugin(
     octoprint.plugin.StartupPlugin,
     octoprint.plugin.AssetPlugin,
     octoprint.plugin.TemplatePlugin,
+    # IkeaTradfriPluginTemplate,
     octoprint.plugin.BlueprintPlugin,
     # octoprint.plugin.SettingsPlugin,
     IkeaTradfriPluginWizard
@@ -194,7 +193,7 @@ class IkeaTradfriPlugin(
                 custom_bindings=True,
                 suffix="_" + str(dev['id']),
                 data_bind="let: {idev: " + str(
-                    i) + ", dev: settings.settings.plugins.ikea_tradfri.selected_devices()[" + str(i) + "] }",
+                    i) + ", dev: settings.settings.plugins.ikea_tradfri_v2.selected_devices()[" + str(i) + "] }",
                 classes=["dropdown navbar_plugin_ikea_tradfri"]
             )
             if hidden:
@@ -235,7 +234,7 @@ class IkeaTradfriPlugin(
 
                 # version check: github repository
                 type="github_release",
-                user="ralmn",
+                user="PascalKern",
                 repo="OctoPrint-Ikea-tradfri",
                 current=self._plugin_version,
                 prerelease=True,

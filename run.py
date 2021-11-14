@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 import json
-import uuid
 
 from pytradfri.util import load_json, save_json
 from pytradfri.const import ATTR_ID
 from octoprint_ikea_tradfri_v2 import TradfriClient
 from pytradfri.error import ServerError
-from octoprint_ikea_tradfri_v2.tradfri_client import g_generate_psk
 
 CONFIG = "run_conf.json"
 

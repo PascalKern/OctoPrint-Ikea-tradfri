@@ -7,7 +7,7 @@ from pytradfri.error import PytradfriError
 import octoprint
 from octoprint.plugin import WizardPlugin, SettingsPlugin
 
-from .tradfri_client import TradfriClient
+from octoprint_ikea_tradfri_v2.tradfri_client import TradfriClient
 
 userId = "OctoPrint_Tradfri_Plugin"
 

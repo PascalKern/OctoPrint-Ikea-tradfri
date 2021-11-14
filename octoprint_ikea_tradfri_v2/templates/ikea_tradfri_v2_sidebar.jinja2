@@ -1,5 +1,5 @@
 <div>
-    <!--ko foreach: settings.settings.plugins.ikea_tradfri.selected_devices-->
+    <!--ko foreach: settings.settings.plugins.ikea_tradfri_v2.selected_devices-->
     <h4 data-bind="text:$data.name"></h4>
     <div data-bind="visible: $data.turn_off_mode() == 'cooldown'">
         <div data-bind="visible: $parent.sidebarInfoCooldownPlanned($data)">
