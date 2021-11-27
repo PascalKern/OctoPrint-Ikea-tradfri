@@ -1,0 +1,38 @@
+plugins:
+  ikea_tradfri_v2:
+    _config_version: 5
+    devices:
+    - id: 65561
+      name: Library Ceiling (color)
+      type: Light
+    - id: 65575
+      name: Entree Ceiling (color)
+      type: Light
+    - id: 65581
+      name: Printer
+      type: Outlet
+    - id: 65579
+      name: Recharge Ceiling (color)
+      type: Light
+    - id: 65568
+      name: Activity flexibel
+      type: Light
+    - id: 65580
+      name: Activity Stand
+      type: Light
+    - id: 65560
+      name: Being Ceiling 2
+      type: Light
+    - id: 65573
+      name: 'Activity Ceiling '
+      type: Light
+    - id: 65576
+      name: Library Outlet
+      type: Outlet
+    - id: 65559
+      name: Being Ceiling 1
+      type: Light
+    gateway_ip: 192.168.0.124
+    identity: OctoPrintTradfriV2Plugin-5cfa8b
+    psk: m8L7poUGXSCNIXVt
+    selected_devices:

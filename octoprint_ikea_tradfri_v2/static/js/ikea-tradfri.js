@@ -90,6 +90,7 @@ $(function () {
         }
 
         self.wizardTryConnect = function () {
+            console.log("----- Baseurl: ${BASEURL}")
             $.ajax({
                 url: BASEURL + "plugin/ikea_tradfri_v2/wizard/tryConnect",
                 type: "POST",

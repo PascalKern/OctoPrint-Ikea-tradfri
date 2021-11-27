@@ -10,3 +10,4 @@ dist
 .vscode
 
 /run_conf.json
+config_test*

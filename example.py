@@ -73,7 +73,7 @@ async def run():
         psk = conf[args.host].get("key")
         api_factory = await APIFactory.init(host=args.host, psk_id=identity, psk=psk)
         print("Using (existing) gateway: '%s', identity: '%s' and key: '%s'" % (args.host, identity, psk))
-    except (KeyError, ServerError):
+    except KeyError:
         identity = uuid.uuid4().hex
         api_factory = await APIFactory.init(host=args.host, psk_id=identity)
 
@@ -89,6 +89,8 @@ async def run():
                 "back of your Tradfri gateway using the "
                 "-K flag."
             )
+        except ServerError as e:
+            print("ServerError: ", e)
         print("Using gateway: '%s', identity: '%s' and key: '%s'" % (args.host, identity, conf[args.host].get("key")))
 
     api = api_factory.request

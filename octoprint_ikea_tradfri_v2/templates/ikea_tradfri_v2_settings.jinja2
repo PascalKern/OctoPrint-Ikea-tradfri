@@ -1,5 +1,5 @@
 <div id="form_ikea_tradfri">
-    <div data-bind="visible: settings.loginState.hasPermission(settings.access.permissions.PLUGIN_IKEA_TRADFRI_ADMIN)">
+    <div data-bind="visible: settings.loginState.hasPermission(settings.access.permissions.PLUGIN_IKEA_TRADFRI_V2_ADMIN)">
         <h1>{{ _("General configuration") }}</h1>
 
         <form class="form-horizontal" autocomplete="off">
@@ -11,10 +11,18 @@
                 </div>
             </div>
             <div class="control-group">
-                <label class="control-label">{{ _('Ikea Gateway Security Code') }}</label>
+                <label class="control-label">{{ _('Ikea Gateway PSK') }}</label>
                 <div class="controls">
-                    <input type="password" autocomplete="off" class="input-block-level" name="security_code"
-                           data-bind="value: settings.settings.plugins.ikea_tradfri_v2.security_code">
+                    <input type="text" autocomplete="off" class="input-block-level" name="psk"
+                           data-bind="value: settings.settings.plugins.ikea_tradfri_v2.psk">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label class="control-label">{{ _('Ikea Gateway Identity') }}</label>
+                <div class="controls">
+                    <input type="text" class="input-block-level" readonly name="identity"
+                           data-bind="value: settings.settings.plugins.ikea_tradfri_v2.identity">
                 </div>
             </div>
 
@@ -52,7 +60,7 @@
 
     </div>
 
-    <div data-bind="visible: !settings.loginState.hasPermission(settings.access.permissions.PLUGIN_IKEA_TRADFRI_ADMIN)">
+    <div data-bind="visible: !settings.loginState.hasPermission(settings.access.permissions.PLUGIN_IKEA_TRADFRI_V2_ADMIN)">
         <p>{{ _("You don't have permissions to edit settings") }}</p>
     </div>
 
