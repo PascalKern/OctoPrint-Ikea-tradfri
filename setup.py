@@ -36,15 +36,8 @@ plugin_license = "AGPLv3"
 # Any additional requirements besides OctoPrint should be listed here
 plugin_requires = [
     "sarge",
-    # "aiocoap[all] @ https://github.com/chrysn/aiocoap/archive/master.zip",
-    # "aiocoap[all]>=0.4b3",
-    # "aiocoap>=0.4b3",
     "aiocoap>=0.4.1",
     f"pytradfri[async] @ git+https://github.com/PascalKern/pytradfri@7.2.1#egg=pytradfri",
-    # /#egg=pytradfri",  # 7.2.1
-    # "aiocoap[async]==0.4.1",
-    # "nest-asyncio==1.5.1",
-    # "pytradfri[async]==7.2"
 ]
 
 ### --------------------------------------------------------------------------------------------------------------------

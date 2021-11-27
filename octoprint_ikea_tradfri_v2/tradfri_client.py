@@ -5,7 +5,7 @@ import logging
 from asyncio import AbstractEventLoop
 from logging import config
 from time import sleep
-from typing import Optional, Coroutine
+from typing import Optional, Coroutine, List
 
 from pytradfri.command import Command
 
@@ -104,11 +104,11 @@ class TradfriClient:
             self._logger.debug(f"Worker initialized with thread name: {self._worker.name}")
         return self._worker
 
-    def get_sockets(self) -> list[CommonTradfriSocketWrapper]:
+    def get_sockets(self) -> List[CommonTradfriSocketWrapper]:
         self._logger.debug(f"Running: get_sockets")
         return [CommonTradfriSocketWrapper(dev) for dev in self._checked_execution(self._get_sockets())]
 
-    def list_devices(self) -> list[CommonTradfriDeviceWrapper]:
+    def list_devices(self) -> List[CommonTradfriDeviceWrapper]:
         self._logger.debug(f"Running: list_devices")
         return [CommonTradfriDeviceWrapper(dev) for dev in self._checked_execution(self._get_devices())]
 
@@ -128,12 +128,12 @@ class TradfriClient:
         except Exception as e:
             self._logger.error("Failed to checked call method: '%s'!" % method, e)
 
-    async def _get_sockets(self) -> list[Device]:  # -> list[TradfriDevice]:
+    async def _get_sockets(self) -> List[Device]:
         self._logger.debug(f"Running: _get_sockets")
         devices = await self._get_devices()
         return [dev for dev in devices if dev.has_socket_control]
 
-    async def _get_devices(self) -> list[Device]:
+    async def _get_devices(self) -> List[Device]:
         self._logger.debug(f"Running: _get_devices")
         devices_command = Gateway().get_devices()
         devices_commands = await self._call_api(devices_command)
